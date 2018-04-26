@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <title>Canvas Programming</title>
+   <style>
+   </style>
+ </head>
+ <body style="margin: 0;" onkeydown="keyPressed(event)" onkeyup="keyReleased(event)">
+  <canvas id="myCanvas" width="400" height="400"></canvas>
+  <script>
+   var keys=[];
+   var canvas = document.getElementById("myCanvas");
+   //var width=canvas.width;
+   //var height=canvas.height;
+   var ctx = canvas.getContext("2d");
+   ctx.font = "30px Arial";
+   ctx.textAlign="center";
+   var circle=function(x,y,r){
+    ctx.beginPath();
+    ctx.arc(x,y,r,0,2*Math.PI);
+    ctx.fill();
+   };
+   var distTo=function(x1,y1,x2,y2){
+    return Math.sqrt(Math.pow((x1-x2),2)+Math.pow((y1-y2),2))
+   }
+   //ctx.translate(canvas.width/2,canvas.height/2)
+   
+   var drawBackground=function(){;
+    ctx.fillStyle = "#00ffff";
+    ctx.fillRect(/*canvas.width/-2,canvas.height/-2,*/0,0,canvas.width, canvas.height);
+   }
+   var board={
+    colors:{"2":"#ffff88","4":"#ccff88","8":"#88ff88","16":"#88ffcc","32":"#88ffff","64":"#88ccff","128":"#8888ff","256":"#cc88ff","512":"#ff88ff","1024":"#ff88cc","2048":"#ff8888","4096":"#ffcc88"},
+    squares:[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],
+    move:function(direction){
+     var x=direction[0];
+     var y=direction[1];
+     var merged=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
+;
+     var moved=true;
+   
+  var runs=0;
+     while(moved){
+      moved=false;
+      //console.log(Math.floor((1-y)/2));
+      for(var a=Math.floor((y+1)/2); a<this.squares.length-Math.floor((1-y)/2); a+=1){
+       var i=(y<0 ? this.squares.length-(a+2) : a)
+       for(var b=Math.floor((x+1)/2); b<this.squares[i].length-Math.floor((1-x)/2); b+=1){
+        var j=(x<0 ? this.squares.length-(b+2) : b)
+        var square=this.squares[i][j];
+        //console.log((i-y)+" "+(j-x));
+        if(square!=0){
+         if(this.squares[i-y][j-x]===0){
+          this.squares[i-y][j-x]=square;
+          this.squares[i][j]=0;
+          moved=true;
+         }else if(this.squares[i-y][j-x]===square && !(merged[i-y][j-x]===1 || merged[i][j]===1)){
+          this.squares[i-y][j-x]+=square;
+          this.squares[i][j]=0;
+          moved=true;
+
+          merged[i-y][j-x]=1;
+         }
+        }
+       }
+      }
+      runs+=1;
+     }
+     if(runs>1){
+      return true;
+     }
+     return false;
+    },
+    findOpens:function(){
+     var opens=[]
+
+     for(var i=0; i<4; i+=1){
+      for(var j=0; j<4; j+=1){
+       if(this.squares[i][j]===0){
+        opens.push([i,j])
+       }
+      }
+
+     }
+     return opens
+    },
+    draw:function(){
+     ctx.fillStyle="#888888";
+     ctx.fillRect(50,50,300,300);
+     ctx.fillStyle="#cccccc";
+     for(var i=0; i<4; i+=1){
+      for(var j=0; j<4; j+=1){
+       if(this.squares[i][j]!=0){
+        ctx.fillStyle=this.colors[this.squares[i][j]];
+        ctx.fillRect(60+72.5*j,60+72.5*i,60,60);
+        ctx.fillStyle="#cccccc";
+        ctx.fillText(this.squares[i][j],90+72.5*j,100+72.5*i);
+       } else {
+        ctx.fillRect(60+72.5*j,60+72.5*i,60,60);
+       }
+      }
+
+     }
+    }
+   }
+   board.addRandom=function(){
+    var opens=this.findOpens();
+    var toAdd=2;
+    if(Math.random()>0.9){
+     toAdd=4;
+    }
+    if(opens){
+     var sNum=Math.floor(Math.random()*opens.length);
+     var coords=opens[sNum];
+     this.squares[coords[0]][coords[1]]=toAdd;
+    }
+   };
+   board.addRandom();
+   board.addRandom();
+   var draw=function(){
+    drawBackground();
+    //console.log(board.findOpens())
+    board.draw();
+   }
+   var keyPressed=function(event){
+    keys[event.keyCode]=true;
+    var move=false;
+    if(event.keyCode==38){
+     move=board.move([0,1]);
+     //console.log(event.keyCode);
+    }
+    if(event.keyCode==37){
+     move=board.move([1,0]);
+     //console.log(event.keyCode);
+    }
+    if(event.keyCode==39){
+     move=board.move([-1,0]);
+     //console.log(event.keyCode);
+    }
+    if(event.keyCode==40){
+     move=board.move([0,-1]);
+     //console.log(event.keyCode);
+    }
+    if(move){
+     board.addRandom();
+    }
+   };
+   var keyReleased=function(event){
+    keys[event.keyCode]=false;
+   };
+   setInterval(draw,20);
+  </script>
+  <p>This is not the original 2048. The original can be found <a href="https://gabrielecirulli.github.io/2048/">here</a>.</p>
+ </body>
+</html>
